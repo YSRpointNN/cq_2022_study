@@ -30,12 +30,44 @@ def show_point(x, y, state):
         pygame.draw.rect(windows, (45,45,45), (dis_x, dis_y, SingleWidth-1, SingleHeight-1), 0)
 #-------------------------------------------------------------------------------------------#
 
+def CreateGround(indexg):
+    global ground_load
+    buffer = [0x00 for i in range(0, SCREEN_WID)]
+    for i in range(0, SCREEN_WID):
+        if random.randint(0, 10) > 7:
+            randload = random.randint(0, 8)
+            for j in range(0, random.randint(1, 6)):
+                if i + j >= SCREEN_WID:
+                    pass
+                else:
+                    buffer[i + j] |= 0x01 << randload
+    ground_load[indexg] = buffer
 def Ground():
-    global cordx
-    write_gram(cordx, 7, (0xf0 for i in range(0, 128)))
-    cordx -= 1
-    if cordx < -128:
-        cordx = SCREEN_WID
+    global ground_move
+    global ground_state
+    ground_move -= 1
+    write_gram(ground_move, 5, cactus[0][:9])
+    write_gram(ground_move, 6, cactus[0][9:])
+    if ground_move > 0:
+        write_gram(ground_move, 7, ground_load[0])
+        write_gram(ground_move - SCREEN_WID, 7, ground_load[2])
+    if ground_move < 0:
+        if ground_state == 2:
+            CreateGround(1)
+            ground_state -= 1
+        write_gram(ground_move, 7, ground_load[0])
+        write_gram(ground_move + SCREEN_WID, 7, ground_load[1])
+    if ground_move < -SCREEN_WID:
+        if ground_state == 1:
+            CreateGround(2)
+            ground_state -= 1
+        write_gram(ground_move + SCREEN_WID, 7, ground_load[1])
+        write_gram(ground_move + 2 * SCREEN_WID, 7, ground_load[2])
+    if ground_move < - (2 * SCREEN_WID):
+        ground_move = SCREEN_WID
+        ground_state = 2
+        CreateGround(0)
+
 def DinoJump():
     pass
 
@@ -120,16 +152,21 @@ pygame.display.flip()
 
 clock = pygame.time.Clock()
 speed = 0
+
+
+
+
+
 #------------------------------------------start--------------------------------------------#
 mainloop = True
 while mainloop:
     secstate = 66
-    state = 'Muen'
-    while state == 'Muen':
+    fasstate = 'Muen'
+    while fasstate == 'Muen':
         MuenView()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                state = 'Quit'
+                fasstate = 'Quit'
                 mainloop = False
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
@@ -139,30 +176,45 @@ while mainloop:
                 if event.button == 3:
                     if secstate == 1:
                         ScreenClear()
-                        state = 'Game'
+                        ground_move = SCREEN_WID
+                        ground_load = [[], [], []]
+                        CreateGround(0)
+                        ground_state = 2
+                        write_gram(0, 6, (0x40 for i in range(0, SCREEN_WID)))
+                        fasstate = 'Game'
                     if secstate == 2:
                         ScreenClear()
                         ShowString(0, 0, 'waiting...')
-                        state = 'List'
+                        fasstate = 'List'
                     if secstate == 3:
-                        state = 'Quit'
+                        fasstate = 'Quit'
                         mainloop = False
-    if state == 'Game':
-        write_gram(0, 6, (0x10 for i in range(0, SCREEN_WID)))
-        cordx = SCREEN_WID
-    while state == 'Game':
+    while fasstate == 'List':
+        pass
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                fasstate = 'Quit'
+                mainloop = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    print('waiting...')
+                if event.button == 3:
+                    ScreenClear()
+                    fasstate = 'Muen'
+
+    while fasstate == 'Game':
         speed += 1
         Ground()
         DinoRun()
+        ShowString(0, 0, str(speed // 10))
         clock.tick(50 + (speed // 100))
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                state = 'Quit'
+                fasstate = 'Quit'
                 mainloop = False
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
                     print('tiao')
-                    print(speed)
                 if event.button == 3:
                     print('pa')
 pygame.quit()
