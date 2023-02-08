@@ -70,24 +70,9 @@ def email_send(html_txt):
     import smtplib
     from email.mime.text import MIMEText
     from email.header import Header
-
-    sender = 'PCQ_MIS_AIOps@pegatroncorp.com'
-    to = ['FH10530A0M@intra.pegatroncorp.com']
-    receivers = to
-    html_egg = html_txt
-
-    message = MIMEText(html_egg, 'html', 'utf-8')
-    subject = '產綫Server自動巡檢(DELL)'
-    message['Subject'] = Header(subject, 'utf-8')
-    message['To'] = Header("FH10530A0M@intra.pegatroncorp.com")
-
-    try:
-        smtpobj = smtplib.SMTP('relay.cq.pegatroncorp.com')
-        smtpobj.sendmail(sender, receivers, message.as_string())
-        print("sucess")
-    except smtplib.SMTPException:
-        print("Error")
-
+    ##
+    pass
+    ##
 
 #----------------------------------------start----------------------------------------#
 html_egg = '''<!DOCTYPE html>
